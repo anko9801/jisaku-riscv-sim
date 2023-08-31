@@ -2,10 +2,18 @@ use crate::{
     error::{SimError, SimResult},
     instructions::{
         rv32i::{ADDI, AUIPC, JAL, JALR, LB, LUI},
-        rvc::{C_ADDI, C_JR, C_NOP},
+        rvc::{
+            C_ADD, C_ADDI, C_ADDI4SPN, C_EBREAK, C_FLD, C_FLDSP, C_FLWSP, C_FSD, C_FSDSP, C_FSWSP,
+            C_JALR, C_JR, C_LD, C_LDSP, C_LQSP, C_LW, C_LWSP, C_MV, C_NOP, C_SD, C_SDSP, C_SLLI,
+            C_SLLI64, C_SQSP, C_SW, C_SWSP,
+        },
         Instruction,
     },
-    processor::State,
+    processor::{
+        State,
+        XLEN::{RV128, RV32, RV64},
+    },
+    utils::x,
 };
 // xlen -> opcode -> mask
 // Vec<u8> -> [pc -> xlen -> u16, u32 Instruction_raw -> match -> Instruction -> effect]
@@ -17,7 +25,7 @@ pub enum InstructionRaw {
 
 impl InstructionRaw {
     pub fn get_inst(code: &[u8], pos: usize) -> Self {
-        let length = Self::inst_length(u16::from_be_bytes(code[pos..pos + 2].try_into().unwrap()));
+        let length = Self::inst_length(u16::from_le_bytes(code[pos..pos + 2].try_into().unwrap()));
         assert!(length <= 4);
         match length {
             2 => InstructionRaw::B16(u16::from_le_bytes(
@@ -56,7 +64,8 @@ impl State {
     }
 
     fn decode_inst16(&self, inst: u16) -> SimResult<Box<dyn Instruction>> {
-        let opcode = inst & 0b11;
+        let opcode = x(inst, 0, 2);
+        println!("{}", opcode);
         match opcode {
             0b00 => self.decode_inst_c0(inst),
             0b01 => self.decode_inst_c1(inst),
@@ -91,23 +100,22 @@ impl State {
     }
 
     fn decode_inst_c0(&self, inst: u16) -> SimResult<Box<dyn Instruction>> {
-        let func = (inst >> 13) & 0b111;
-        match func {
+        let funct3 = x(inst, 13, 3);
+        match funct3 {
             0b000 => {
                 if inst == 0 {
                     Err(SimError::ParseError("Illegal instruction".to_string()))
                 } else {
-                    todo!()
-                    // Ok(Box::new(C_ADDI4SPN(inst)))
+                    Ok(Box::new(C_ADDI4SPN::new(inst)))
                 }
             }
-            // 0b001 => Ok(Box::new(C_FLD(inst))),
-            // 0b010 => Ok(Box::new(C_LW(inst))),
-            // 0b011 => Ok(Box::new(C_LD(inst))),
-            // 0b100 => Err(SimError::ParseError("Reserved".to_string())),
-            // 0b101 => Ok(Box::new(C_FSD(inst))),
-            // 0b110 => Ok(Box::new(C_SW(inst))),
-            // 0b111 => Ok(Box::new(C_SD(inst))),
+            0b001 => Ok(Box::new(C_FLD::new(inst))),
+            0b010 => Ok(Box::new(C_LW::new(inst))),
+            0b011 => Ok(Box::new(C_LD::new(inst))),
+            0b100 => Err(SimError::ParseError("Reserved".to_string())),
+            0b101 => Ok(Box::new(C_FSD::new(inst))),
+            0b110 => Ok(Box::new(C_SW::new(inst))),
+            0b111 => Ok(Box::new(C_SD::new(inst))),
             _ => {
                 panic!("unexpected branch");
             }
@@ -115,8 +123,8 @@ impl State {
     }
 
     fn decode_inst_c1(&self, inst: u16) -> SimResult<Box<dyn Instruction>> {
-        let func = (inst >> 13) & 0b111;
-        match func {
+        let funct3 = x(inst, 13, 3);
+        match funct3 {
             0b000 => {
                 if inst == 1 {
                     Ok(Box::new(C_NOP::new(inst)))
@@ -124,10 +132,6 @@ impl State {
                     Ok(Box::new(C_ADDI::new(inst)))
                 }
             }
-            // 0b001 => Ok(Box::new(C_ADDIW(inst))),
-            // 0b010 => Ok(Box::new(C_LI(inst))),
-            // 0b011 => Ok(Box::new(C_LUI(inst))),
-            // 0b100 => Ok(Box::new(C_LUI(inst))),
             _ => {
                 panic!("unexpected branch");
             }
@@ -135,26 +139,41 @@ impl State {
     }
 
     fn decode_inst_c2(&self, inst: u16) -> SimResult<Box<dyn Instruction>> {
-        let func = (inst >> 13) & 0b111;
-        match func {
-            0b100 => {
-                if (inst >> 12) & 1 == 0 && (inst >> 2) & 0x1f == 0 {
-                    Ok(Box::new(C_JR::new(inst)))
-                } else {
-                    todo!();
-                }
-            }
-            // 0b000 => {
-            //     if inst == 1 {
-            //         Ok(Box::new(C_NOP(inst)))
-            //     } else {
-            //         Ok(Box::new(C_ADDI(inst)))
-            //     }
-            // }
-            // 0b001 => Ok(Box::new(C_ADDIW(inst))),
-            // 0b010 => Ok(Box::new(C_LI(inst))),
-            // 0b011 => Ok(Box::new(C_LUI(inst))),
-            // 0b100 => Ok(Box::new(C_LUI(inst))),
+        let flag1 = x(inst, 2, 5);
+        let rd = x(inst, 7, 5);
+        let flag2 = x(inst, 12, 1);
+        let funct3 = x(inst, 13, 3);
+        match funct3 {
+            0b000 => match (flag1, rd, flag2) {
+                (0, _, 0) => Ok(Box::new(C_SLLI64::new(inst))),
+                (_, _, _) => Ok(Box::new(C_SLLI::new(inst))),
+            },
+            0b001 => match self.xlen {
+                RV32 | RV64 => Ok(Box::new(C_FLDSP::new(inst))),
+                RV128 => Ok(Box::new(C_LQSP::new(inst))),
+            },
+            0b010 => Ok(Box::new(C_LWSP::new(inst))),
+            0b011 => match self.xlen {
+                RV32 => Ok(Box::new(C_FLWSP::new(inst))),
+                RV64 | RV128 => Ok(Box::new(C_LDSP::new(inst))),
+            },
+            0b100 => match (flag1, rd, flag2) {
+                (0, _, 0) => Ok(Box::new(C_JR::new(inst))),
+                (0, _, _) => Ok(Box::new(C_MV::new(inst))),
+                (1, 0, 0) => Ok(Box::new(C_EBREAK::new(inst))),
+                (1, _, 0) => Ok(Box::new(C_JALR::new(inst))),
+                (1, _, _) => Ok(Box::new(C_ADD::new(inst))),
+                _ => panic!("unexpected branch"),
+            },
+            0b101 => match self.xlen {
+                RV32 | RV64 => Ok(Box::new(C_FSDSP::new(inst))),
+                RV128 => Ok(Box::new(C_SQSP::new(inst))),
+            },
+            0b110 => Ok(Box::new(C_SWSP::new(inst))),
+            0b111 => match self.xlen {
+                RV32 => Ok(Box::new(C_FSWSP::new(inst))),
+                RV64 | RV128 => Ok(Box::new(C_SDSP::new(inst))),
+            },
             _ => {
                 panic!("unexpected branch");
             }

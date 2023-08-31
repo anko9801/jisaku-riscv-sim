@@ -2,8 +2,9 @@ use enumn::N;
 use strum_macros::EnumString;
 
 pub enum XLEN {
-    R32,
-    R64,
+    RV32,
+    RV64,
+    RV128,
 }
 
 #[derive(Debug, PartialEq, EnumString, N, Clone, Copy)]
@@ -76,6 +77,11 @@ pub enum XprName {
 impl Into<usize> for XprName {
     fn into(self) -> usize {
         self as usize
+    }
+}
+impl XprName {
+    pub fn from_num(value: i64) -> Self {
+        Self::n(value).unwrap()
     }
 }
 
@@ -255,7 +261,7 @@ impl State {
         State {
             regs: XPR::new(),
             pc: 0,
-            xlen: XLEN::R64,
+            xlen: XLEN::RV64,
         }
     }
 }

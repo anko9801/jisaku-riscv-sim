@@ -2,6 +2,7 @@ mod decode;
 mod error;
 pub mod instructions;
 mod processor;
+mod utils;
 
 use processor::State;
 

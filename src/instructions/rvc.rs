@@ -1,17 +1,134 @@
-use crate::processor::{State, XprName};
+use super::Instruction;
+use crate::{
+    processor::{State, XprName},
+    utils::x,
+};
 
-use super::{x, Instruction};
+fn rvc_cr_type(inst: u16) -> (XprName, XprName) {
+    let rs1 = x(inst, 7, 5);
+    let rs2 = x(inst, 2, 5);
+    (XprName::from_num(rs1), XprName::from_num(rs2))
+}
+fn rvc_ci_type(inst: u16) -> XprName {
+    let rs1 = x(inst, 7, 5);
+    XprName::from_num(rs1)
+}
+fn rvc_css_type(inst: u16) -> (XprName, i64) {
+    let rs2 = x(inst, 2, 5);
+    let imm = x(inst, 7, 6);
+    (XprName::from_num(rs2), imm)
+}
+fn rvc_ciw_type(inst: u16) -> XprName {
+    let rd = x(inst, 2, 3);
+    XprName::from_num(rd + 0x10)
+}
+fn rvc_cl_type(inst: u16) -> (XprName, XprName) {
+    let rd = x(inst, 2, 3);
+    let rs1 = x(inst, 7, 3);
+    (XprName::from_num(rd + 0x10), XprName::from_num(rs1 + 0x10))
+}
+fn rvc_cs_type(inst: u16) -> (XprName, XprName) {
+    let rs2 = x(inst, 2, 3);
+    let rs1 = x(inst, 7, 3);
+    (XprName::from_num(rs2 + 0x10), XprName::from_num(rs1 + 0x10))
+}
+fn rvc_cb_type(inst: u16) -> XprName {
+    let rs1 = x(inst, 7, 3);
+    XprName::from_num(rs1 + 0x10)
+}
 
-pub struct C_JR(u16);
-impl C_JR {
+pub struct C_ADDI4SPN(u16);
+impl C_ADDI4SPN {
     pub fn new(inst: u16) -> Self {
-        C_JR(inst)
+        C_ADDI4SPN(inst)
     }
 }
-impl Instruction for C_JR {
+impl Instruction for C_ADDI4SPN {
     fn effect(&self, state: &mut State) {
-        println!("ret");
-        state.regs.get(XprName::ra);
+        state.pc += 2;
+    }
+}
+
+pub struct C_FLD(u16);
+impl C_FLD {
+    pub fn new(inst: u16) -> Self {
+        C_FLD(inst)
+    }
+}
+impl Instruction for C_FLD {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_LW(u16);
+impl C_LW {
+    pub fn new(inst: u16) -> Self {
+        C_LW(inst)
+    }
+}
+impl Instruction for C_LW {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_LD(u16);
+impl C_LD {
+    pub fn new(inst: u16) -> Self {
+        C_LD(inst)
+    }
+}
+impl Instruction for C_LD {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_FSD(u16);
+impl C_FSD {
+    pub fn new(inst: u16) -> Self {
+        C_FSD(inst)
+    }
+}
+impl Instruction for C_FSD {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_SW(u16);
+impl C_SW {
+    pub fn new(inst: u16) -> Self {
+        C_SW(inst)
+    }
+}
+impl Instruction for C_SW {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_SD(u16);
+impl C_SD {
+    pub fn new(inst: u16) -> Self {
+        C_SD(inst)
+    }
+}
+impl Instruction for C_SD {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_NOP(u16);
+impl C_NOP {
+    pub fn new(inst: u16) -> Self {
+        C_NOP(inst)
+    }
+}
+impl Instruction for C_NOP {
+    fn effect(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -39,13 +156,207 @@ impl Instruction for C_ADDI {
     }
 }
 
-pub struct C_NOP(u16);
-impl C_NOP {
+pub struct C_SLLI(u16);
+impl C_SLLI {
     pub fn new(inst: u16) -> Self {
-        C_NOP(inst)
+        C_SLLI(inst)
     }
 }
-impl Instruction for C_NOP {
+impl Instruction for C_SLLI {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_SLLI64(u16);
+impl C_SLLI64 {
+    pub fn new(inst: u16) -> Self {
+        C_SLLI64(inst)
+    }
+}
+impl Instruction for C_SLLI64 {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_FLDSP(u16);
+impl C_FLDSP {
+    pub fn new(inst: u16) -> Self {
+        C_FLDSP(inst)
+    }
+}
+impl Instruction for C_FLDSP {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_LQSP(u16);
+impl C_LQSP {
+    pub fn new(inst: u16) -> Self {
+        C_LQSP(inst)
+    }
+}
+impl Instruction for C_LQSP {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_LWSP(u16);
+impl C_LWSP {
+    pub fn new(inst: u16) -> Self {
+        C_LWSP(inst)
+    }
+}
+impl Instruction for C_LWSP {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_FLWSP(u16);
+impl C_FLWSP {
+    pub fn new(inst: u16) -> Self {
+        C_FLWSP(inst)
+    }
+}
+impl Instruction for C_FLWSP {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_LDSP(u16);
+impl C_LDSP {
+    pub fn new(inst: u16) -> Self {
+        C_LDSP(inst)
+    }
+}
+impl Instruction for C_LDSP {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_JR(u16);
+impl C_JR {
+    pub fn new(inst: u16) -> Self {
+        C_JR(inst)
+    }
+}
+impl Instruction for C_JR {
+    fn effect(&self, state: &mut State) {
+        println!("ret");
+        state.regs.get(XprName::ra);
+        state.pc += 2;
+    }
+}
+
+pub struct C_MV(u16);
+impl C_MV {
+    pub fn new(inst: u16) -> Self {
+        C_MV(inst)
+    }
+}
+impl Instruction for C_MV {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_EBREAK(u16);
+impl C_EBREAK {
+    pub fn new(inst: u16) -> Self {
+        C_EBREAK(inst)
+    }
+}
+impl Instruction for C_EBREAK {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_JALR(u16);
+impl C_JALR {
+    pub fn new(inst: u16) -> Self {
+        C_JALR(inst)
+    }
+}
+impl Instruction for C_JALR {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_ADD(u16);
+impl C_ADD {
+    pub fn new(inst: u16) -> Self {
+        C_ADD(inst)
+    }
+}
+impl Instruction for C_ADD {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_FSDSP(u16);
+impl C_FSDSP {
+    pub fn new(inst: u16) -> Self {
+        C_FSDSP(inst)
+    }
+}
+impl Instruction for C_FSDSP {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_SQSP(u16);
+impl C_SQSP {
+    pub fn new(inst: u16) -> Self {
+        C_SQSP(inst)
+    }
+}
+impl Instruction for C_SQSP {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_SWSP(u16);
+impl C_SWSP {
+    pub fn new(inst: u16) -> Self {
+        C_SWSP(inst)
+    }
+}
+impl Instruction for C_SWSP {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_FSWSP(u16);
+impl C_FSWSP {
+    pub fn new(inst: u16) -> Self {
+        C_FSWSP(inst)
+    }
+}
+impl Instruction for C_FSWSP {
+    fn effect(&self, state: &mut State) {
+        state.pc += 2;
+    }
+}
+
+pub struct C_SDSP(u16);
+impl C_SDSP {
+    pub fn new(inst: u16) -> Self {
+        C_SDSP(inst)
+    }
+}
+impl Instruction for C_SDSP {
     fn effect(&self, state: &mut State) {
         state.pc += 2;
     }
