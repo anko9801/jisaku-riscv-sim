@@ -8,6 +8,7 @@ use processor::State;
 use crate::decode::InstructionRaw;
 
 fn main() {
+    let path = std::path::PathBuf::from("sample-objects/symver.x86_64.so");
     let insts = vec![
         0x41, 0x11, // addi sp,sp,-16
         0x06, 0xe4, // sd ra,8(sp)

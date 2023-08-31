@@ -1,6 +1,10 @@
 use crate::{
     error::{SimError, SimResult},
-    instructions::{Instruction, C_ADDI, C_JR, C_NOP, JALR, LUI},
+    instructions::{
+        rv32i::{ADDI, AUIPC, JAL, JALR, LB, LUI},
+        rvc::{C_ADDI, C_JR, C_NOP},
+        Instruction,
+    },
     processor::State,
 };
 // xlen -> opcode -> mask
@@ -63,6 +67,29 @@ impl State {
         }
     }
 
+    fn decode_inst32(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
+        let opcode = (inst >> 2) & 0b11111;
+        match opcode {
+            0x00 => self.decode_inst_op_00000(inst),
+            0x01 => self.decode_inst_op_00001(inst),
+            0x02 => self.decode_inst_op_00010(inst),
+            0x03 => self.decode_inst_op_00011(inst),
+            0x04 => self.decode_inst_op_00100(inst),
+            0x05 => Ok(Box::new(AUIPC::new(inst))),
+            0x06 => self.decode_inst_op_00110(inst),
+            0x08 => self.decode_inst_op_01000(inst),
+            0x0c => self.decode_inst_op_01100(inst),
+            0x0d => Ok(Box::new(LUI::new(inst))),
+            0x18 => self.decode_inst_op_11000(inst),
+            0x19 => Ok(Box::new(JALR::new(inst))),
+            0x1b => Ok(Box::new(JAL::new(inst))),
+            0x1c => self.decode_inst_op_11100(inst),
+            _ => {
+                panic!("");
+            }
+        }
+    }
+
     fn decode_inst_c0(&self, inst: u16) -> SimResult<Box<dyn Instruction>> {
         let func = (inst >> 13) & 0b111;
         match func {
@@ -92,9 +119,9 @@ impl State {
         match func {
             0b000 => {
                 if inst == 1 {
-                    Ok(Box::new(C_NOP(inst)))
+                    Ok(Box::new(C_NOP::new(inst)))
                 } else {
-                    Ok(Box::new(C_ADDI(inst)))
+                    Ok(Box::new(C_ADDI::new(inst)))
                 }
             }
             // 0b001 => Ok(Box::new(C_ADDIW(inst))),
@@ -112,7 +139,7 @@ impl State {
         match func {
             0b100 => {
                 if (inst >> 12) & 1 == 0 && (inst >> 2) & 0x1f == 0 {
-                    Ok(Box::new(C_JR(inst)))
+                    Ok(Box::new(C_JR::new(inst)))
                 } else {
                     todo!();
                 }
@@ -134,14 +161,46 @@ impl State {
         }
     }
 
-    fn decode_inst32(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
-        let opcode = (inst >> 2) & 0b11111;
-        match opcode {
-            0x0d => Ok(Box::new(LUI(inst))),
-            0x19 => Ok(Box::new(JALR(inst))),
+    fn decode_inst_op_00000(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
+        let funct = (inst >> 12) & 0b111;
+        match funct {
+            0b000 => Ok(Box::new(LB::new(inst))),
             _ => {
-                panic!("");
+                panic!()
             }
         }
+    }
+    fn decode_inst_op_00001(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
+        panic!()
+    }
+    fn decode_inst_op_00010(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
+        panic!()
+    }
+    fn decode_inst_op_00011(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
+        panic!()
+    }
+    fn decode_inst_op_00100(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
+        let funct = (inst >> 12) & 0b111;
+        match funct {
+            0b000 => Ok(Box::new(ADDI::new(inst))),
+            _ => {
+                panic!()
+            }
+        }
+    }
+    fn decode_inst_op_00110(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
+        panic!()
+    }
+    fn decode_inst_op_01000(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
+        panic!()
+    }
+    fn decode_inst_op_01100(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
+        panic!()
+    }
+    fn decode_inst_op_11000(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
+        panic!()
+    }
+    fn decode_inst_op_11100(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
+        panic!()
     }
 }

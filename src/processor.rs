@@ -6,7 +6,7 @@ pub enum XLEN {
     R64,
 }
 
-#[derive(Debug, PartialEq, EnumString, N)]
+#[derive(Debug, PartialEq, EnumString, N, Clone, Copy)]
 pub enum XprName {
     #[strum(serialize = "zero")]
     zero,
