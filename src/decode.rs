@@ -1,6 +1,6 @@
 use crate::{
     error::{SimError, SimResult},
-    instructions::{Instruction, C_JR, JALR, LUI},
+    instructions::{Instruction, C_ADDI, C_JR, C_NOP, JALR, LUI},
     processor::State,
 };
 // xlen -> opcode -> mask
@@ -16,10 +16,10 @@ impl InstructionRaw {
         let length = Self::inst_length(u16::from_be_bytes(code[pos..pos + 2].try_into().unwrap()));
         assert!(length <= 4);
         match length {
-            2 => InstructionRaw::B16(u16::from_be_bytes(
+            2 => InstructionRaw::B16(u16::from_le_bytes(
                 code[pos..pos + length].try_into().unwrap(),
             )),
-            4 => InstructionRaw::B32(u32::from_be_bytes(
+            4 => InstructionRaw::B32(u32::from_le_bytes(
                 code[pos..pos + length].try_into().unwrap(),
             )),
             _ => panic!("test"),
@@ -90,13 +90,13 @@ impl State {
     fn decode_inst_c1(&self, inst: u16) -> SimResult<Box<dyn Instruction>> {
         let func = (inst >> 13) & 0b111;
         match func {
-            // 0b000 => {
-            //     if inst == 1 {
-            //         Ok(Box::new(C_NOP(inst)))
-            //     } else {
-            //         Ok(Box::new(C_ADDI(inst)))
-            //     }
-            // }
+            0b000 => {
+                if inst == 1 {
+                    Ok(Box::new(C_NOP(inst)))
+                } else {
+                    Ok(Box::new(C_ADDI(inst)))
+                }
+            }
             // 0b001 => Ok(Box::new(C_ADDIW(inst))),
             // 0b010 => Ok(Box::new(C_LI(inst))),
             // 0b011 => Ok(Box::new(C_LUI(inst))),

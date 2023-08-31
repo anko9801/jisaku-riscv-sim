@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use enumn::N;
 use strum_macros::EnumString;
 
 pub enum XLEN {
@@ -6,7 +6,7 @@ pub enum XLEN {
     R64,
 }
 
-#[derive(Debug, PartialEq, EnumString)]
+#[derive(Debug, PartialEq, EnumString, N)]
 pub enum XprName {
     #[strum(serialize = "zero")]
     zero,
@@ -73,8 +73,13 @@ pub enum XprName {
     #[strum(serialize = "t6")]
     t6,
 }
+impl Into<usize> for XprName {
+    fn into(self) -> usize {
+        self as usize
+    }
+}
 
-#[derive(Debug, PartialEq, EnumString)]
+#[derive(Debug, PartialEq, EnumString, N)]
 pub enum FprName {
     #[strum(serialize = "ft0")]
     ft0,
@@ -210,38 +215,38 @@ pub enum VR {
     v31,
 }
 
-type reg_t = u64;
+type Reg = i64;
 pub struct XPR {
-    data: [reg_t; 32],
+    data: [Reg; 32],
 }
 impl XPR {
     pub fn new() -> Self {
         XPR { data: [0; 32] }
     }
-    pub fn get(&self, name: XprName) -> reg_t {
-        self.data[name as usize]
+    pub fn get<N: Into<usize>>(&self, reg: N) -> Reg {
+        self.data[reg.into()]
     }
-    pub fn set(&mut self, name: XprName, value: reg_t) {
-        self.data[name as usize] = value;
+    pub fn set<N: Into<usize>>(&mut self, reg: N, value: Reg) {
+        self.data[reg.into()] = value;
     }
 }
 
-type freg_t = f64;
+type FReg = f64;
 struct FPR {
-    data: [freg_t; 32],
+    data: [FReg; 32],
 }
 impl FPR {
-    pub fn get(&self, name: FprName) -> freg_t {
+    pub fn get(&self, name: FprName) -> FReg {
         self.data[name as usize]
     }
-    pub fn set(&mut self, name: FprName, value: freg_t) {
+    pub fn set(&mut self, name: FprName, value: FReg) {
         self.data[name as usize] = value;
     }
 }
 
 pub struct State {
     pub regs: XPR,
-    pub pc: reg_t,
+    pub pc: Reg,
     pub xlen: XLEN,
 }
 
