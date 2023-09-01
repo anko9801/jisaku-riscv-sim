@@ -4,20 +4,19 @@ use crate::{
         rv32i::{ADDI, AUIPC, JAL, JALR, LB, LUI},
         rvc::{
             C_ADD, C_ADDI, C_ADDI4SPN, C_EBREAK, C_FLD, C_FLDSP, C_FLWSP, C_FSD, C_FSDSP, C_FSWSP,
-            C_JALR, C_JR, C_LD, C_LDSP, C_LQSP, C_LW, C_LWSP, C_MV, C_NOP, C_SD, C_SDSP, C_SLLI,
-            C_SLLI64, C_SQSP, C_SW, C_SWSP,
+            C_JAL, C_JALR, C_JR, C_LD, C_LDSP, C_LI, C_LQSP, C_LW, C_LWSP, C_MV, C_NOP, C_SD,
+            C_SDSP, C_SLLI, C_SLLI64, C_SQSP, C_SW, C_SWSP,
         },
         Instruction,
     },
     processor::{
         State,
-        XLEN::{RV128, RV32, RV64},
+        XLEN::{self, RV128, RV32, RV64},
     },
     utils::x,
 };
-// xlen -> opcode -> mask
-// Vec<u8> -> [pc -> xlen -> u16, u32 Instruction_raw -> match -> Instruction -> effect]
 
+#[derive(Debug)]
 pub enum InstructionRaw {
     B16(u16),
     B32(u32),
@@ -39,16 +38,16 @@ impl InstructionRaw {
     }
 
     fn inst_length(base: u16) -> usize {
-        if base & 0b11 != 0b11 {
+        if x(base, 0, 2) != 0b11 {
             2
-        } else if base & 0b11111 != 0b11111 {
+        } else if x(base, 2, 3) != 0b111 {
             4
-        } else if base & 0b111111 == 0b011111 {
+        } else if x(base, 5, 1) == 0 {
             6
-        } else if base & 0b1111111 == 0b0111111 {
+        } else if x(base, 6, 1) == 0 {
             8
-        } else if (base >> 12) & 0b111 != 0b111 {
-            10 + (((base >> 12) & 0b111) as usize) * 2
+        } else if x(base, 12, 3) != 0b111 {
+            10 + x(base, 12, 3) as usize * 2
         } else {
             26
         }
@@ -65,7 +64,6 @@ impl State {
 
     fn decode_inst16(&self, inst: u16) -> SimResult<Box<dyn Instruction>> {
         let opcode = x(inst, 0, 2);
-        println!("{}", opcode);
         match opcode {
             0b00 => self.decode_inst_c0(inst),
             0b01 => self.decode_inst_c1(inst),
@@ -77,7 +75,7 @@ impl State {
     }
 
     fn decode_inst32(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
-        let opcode = (inst >> 2) & 0b11111;
+        let opcode = x(inst, 2, 5);
         match opcode {
             0x00 => self.decode_inst_op_00000(inst),
             0x01 => self.decode_inst_op_00001(inst),
@@ -132,6 +130,11 @@ impl State {
                     Ok(Box::new(C_ADDI::new(inst)))
                 }
             }
+            0b001 => match self.xlen {
+                XLEN::RV32 => Ok(Box::new(C_JAL::new(inst))),
+                _ => Ok(Box::new(C_JAL::new(inst))),
+            },
+            0b010 => Ok(Box::new(C_LI::new(inst))),
             _ => {
                 panic!("unexpected branch");
             }
@@ -181,7 +184,7 @@ impl State {
     }
 
     fn decode_inst_op_00000(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
-        let funct = (inst >> 12) & 0b111;
+        let funct = x(inst, 12, 3);
         match funct {
             0b000 => Ok(Box::new(LB::new(inst))),
             _ => {
@@ -199,7 +202,7 @@ impl State {
         panic!()
     }
     fn decode_inst_op_00100(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
-        let funct = (inst >> 12) & 0b111;
+        let funct = x(inst, 12, 3);
         match funct {
             0b000 => Ok(Box::new(ADDI::new(inst))),
             _ => {

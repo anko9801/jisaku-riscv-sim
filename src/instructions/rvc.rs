@@ -1,37 +1,44 @@
 use super::Instruction;
 use crate::{
-    processor::{State, XprName},
+    processor::{State, XprName, XprName::sp},
     utils::x,
 };
 
+#[inline]
 fn rvc_cr_type(inst: u16) -> (XprName, XprName) {
     let rs1 = x(inst, 7, 5);
     let rs2 = x(inst, 2, 5);
     (XprName::from_num(rs1), XprName::from_num(rs2))
 }
+#[inline]
 fn rvc_ci_type(inst: u16) -> XprName {
     let rs1 = x(inst, 7, 5);
     XprName::from_num(rs1)
 }
+#[inline]
 fn rvc_css_type(inst: u16) -> (XprName, i64) {
     let rs2 = x(inst, 2, 5);
     let imm = x(inst, 7, 6);
     (XprName::from_num(rs2), imm)
 }
+#[inline]
 fn rvc_ciw_type(inst: u16) -> XprName {
     let rd = x(inst, 2, 3);
     XprName::from_num(rd + 0x10)
 }
+#[inline]
 fn rvc_cl_type(inst: u16) -> (XprName, XprName) {
     let rd = x(inst, 2, 3);
     let rs1 = x(inst, 7, 3);
     (XprName::from_num(rd + 0x10), XprName::from_num(rs1 + 0x10))
 }
+#[inline]
 fn rvc_cs_type(inst: u16) -> (XprName, XprName) {
     let rs2 = x(inst, 2, 3);
     let rs1 = x(inst, 7, 3);
     (XprName::from_num(rs2 + 0x10), XprName::from_num(rs1 + 0x10))
 }
+#[inline]
 fn rvc_cb_type(inst: u16) -> XprName {
     let rs1 = x(inst, 7, 3);
     XprName::from_num(rs1 + 0x10)
@@ -73,14 +80,21 @@ impl Instruction for C_LW {
     }
 }
 
-pub struct C_LD(u16);
+pub struct C_LD {
+    rd: XprName,
+    rs1: XprName,
+    imm: u64,
+}
 impl C_LD {
     pub fn new(inst: u16) -> Self {
-        C_LD(inst)
+        let (rd, rs1) = rvc_cs_type(inst);
+        let imm = ((x(inst, 5, 2) << 6) + (x(inst, 10, 2) << 3)) as u64;
+        C_LD { rd, rs1, imm }
     }
 }
 impl Instruction for C_LD {
     fn effect(&self, state: &mut State) {
+        println!("ld");
         state.pc += 2;
     }
 }
@@ -117,6 +131,7 @@ impl C_SD {
 }
 impl Instruction for C_SD {
     fn effect(&self, state: &mut State) {
+        println!("sd ");
         state.pc += 2;
     }
 }
@@ -152,6 +167,47 @@ impl Instruction for C_ADDI {
         println!("addi {:?}, {:?}, {}", self.rd, self.rd, self.imm);
         let rd_value = state.regs.get(self.rd);
         state.regs.set(self.rd, rd_value + self.imm);
+        state.pc += 2;
+    }
+}
+
+pub struct C_JAL {
+    offset: i64,
+}
+impl C_JAL {
+    pub fn new(inst: u16) -> Self {
+        let imm = (x(inst, 2, 1) << 5)
+            + (x(inst, 3, 3) << 1)
+            + (x(inst, 6, 1) << 7)
+            + (x(inst, 7, 1) << 6)
+            + (x(inst, 8, 1) << 10)
+            + (x(inst, 9, 2) << 8)
+            + (x(inst, 11, 1) << 4)
+            + (x(inst, 12, 1) << 11);
+        C_JAL { offset: imm }
+    }
+}
+impl Instruction for C_JAL {
+    fn effect(&self, state: &mut State) {
+        println!("jal {}", self.offset);
+        state.pc += 2;
+    }
+}
+
+pub struct C_LI {
+    rd: XprName,
+    imm: i64,
+}
+impl C_LI {
+    pub fn new(inst: u16) -> Self {
+        let rd = rvc_ci_type(inst);
+        let imm = x(inst, 2, 5) + (x(inst, 12, 1) << 5);
+        C_LI { rd, imm }
+    }
+}
+impl Instruction for C_LI {
+    fn effect(&self, state: &mut State) {
+        println!("li {:?}, {}", self.rd, self.imm);
         state.pc += 2;
     }
 }
@@ -228,14 +284,20 @@ impl Instruction for C_FLWSP {
     }
 }
 
-pub struct C_LDSP(u16);
+pub struct C_LDSP {
+    rd: XprName,
+    offset: i64,
+}
 impl C_LDSP {
     pub fn new(inst: u16) -> Self {
-        C_LDSP(inst)
+        let rd = rvc_ci_type(inst);
+        let offset = (x(inst, 2, 3) << 6) + (x(inst, 5, 2) << 3) + (x(inst, 12, 1) << 5);
+        C_LDSP { rd, offset }
     }
 }
 impl Instruction for C_LDSP {
     fn effect(&self, state: &mut State) {
+        println!("ld {:?}, {}(sp)", self.rd, self.offset);
         state.pc += 2;
     }
 }
@@ -350,14 +412,22 @@ impl Instruction for C_FSWSP {
     }
 }
 
-pub struct C_SDSP(u16);
+pub struct C_SDSP {
+    rs2: XprName,
+    offset: i64,
+}
 impl C_SDSP {
     pub fn new(inst: u16) -> Self {
-        C_SDSP(inst)
+        let (rs2, imm) = rvc_css_type(inst);
+        let offset = (x(imm as u64, 0, 3) << 6) + (x(imm as u64, 3, 3) << 3);
+        C_SDSP { rs2, offset }
     }
 }
 impl Instruction for C_SDSP {
     fn effect(&self, state: &mut State) {
+        println!("sd {:?}, {}(sp)", self.rs2, self.offset);
+        let sp_val = state.regs.get(sp);
+        state.regs.set(self.rs2, sp_val + self.offset);
         state.pc += 2;
     }
 }

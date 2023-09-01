@@ -25,10 +25,10 @@ fn main() {
     let mut state = State::new();
     while state.pc < insts.len() as i64 {
         let inst = InstructionRaw::get_inst(&insts, state.pc as usize);
-        let test = state.decode_inst(inst);
-        match test {
-            Ok(a) => a.effect(&mut state),
-            Err(e) => println!("{:?}", e),
+        let inst = state.decode_inst(inst);
+        match inst {
+            Ok(inst) => inst.effect(&mut state),
+            Err(e) => panic!("{:?}", e),
         }
     }
 }
