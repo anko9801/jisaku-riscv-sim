@@ -333,7 +333,6 @@ impl State {
             ra, sp, gp, tp, a0, a1, a2, a3, a4, a5, a6, a7, s0, s1, s2, s3, s4, s5, s6, s7, s8, t0,
             t1, t2, t3, t4, t5, t6,
         ];
-        println!("pc: {:#x}", self.pc);
         for i in 0..xprs.len() {
             print!("{:?}: {:016x}\t", xprs[i], self.get_reg(xprs[i]));
             if i % 4 == 3 {

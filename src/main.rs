@@ -27,6 +27,7 @@ fn main() {
     while state.pc < 0x10112 {
         state.print_regs();
         let inst = state.get_inst();
+        print!("{:#x}:\t", state.pc);
         match inst {
             Ok(inst) => inst.effect(&mut state),
             Err(e) => panic!("{}", e),
