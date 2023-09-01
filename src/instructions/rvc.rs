@@ -425,14 +425,20 @@ impl Instruction for C_JR {
     }
 }
 
-pub struct C_MV(u16);
+pub struct C_MV {
+    rd: XprName,
+    rs2: XprName,
+}
 impl C_MV {
     pub fn new(inst: u16) -> Self {
-        C_MV(inst)
+        let (rd, rs2) = rvc_cr_type(inst);
+        C_MV { rd, rs2 }
     }
 }
 impl Instruction for C_MV {
     fn execute(&self, state: &mut State) {
+        println!("mv {:?}, {:?}", self.rd, self.rs2);
+        state.set_reg(self.rd, state.get_reg(self.rs2));
         state.pc += 2;
     }
 }

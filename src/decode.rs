@@ -175,7 +175,7 @@ impl State {
                 RV32 => Ok(Box::new(C_FLWSP::new(inst))),
                 RV64 | RV128 => Ok(Box::new(C_LDSP::new(inst))),
             },
-            0b100 => match (flag1, rd, flag2) {
+            0b100 => match (flag2, rd, flag1) {
                 (0, _, 0) => Ok(Box::new(C_JR::new(inst))),
                 (0, _, _) => Ok(Box::new(C_MV::new(inst))),
                 (1, 0, 0) => Ok(Box::new(C_EBREAK::new(inst))),
