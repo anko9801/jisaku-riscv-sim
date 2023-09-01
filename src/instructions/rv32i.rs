@@ -112,6 +112,138 @@ impl Instruction for JALR {
     }
 }
 
+pub struct BEQ {
+    rs1: XprName,
+    rs2: XprName,
+    offset: i64,
+}
+impl BEQ {
+    pub fn new(inst: u32) -> Self {
+        let (rs1, rs2, offset) = rv32i_b_type(inst);
+        BEQ { rs1, rs2, offset }
+    }
+}
+impl Instruction for BEQ {
+    fn execute(&self, state: &mut State) {
+        println!("beq {:?}, {:?}, {}", self.rs1, self.rs2, self.offset);
+        if state.get_reg(self.rs1) == state.get_reg(self.rs2) {
+            state.pc += self.offset;
+        } else {
+            state.pc += 4;
+        }
+    }
+}
+
+pub struct BNE {
+    rs1: XprName,
+    rs2: XprName,
+    offset: i64,
+}
+impl BNE {
+    pub fn new(inst: u32) -> Self {
+        let (rs1, rs2, offset) = rv32i_b_type(inst);
+        BNE { rs1, rs2, offset }
+    }
+}
+impl Instruction for BNE {
+    fn execute(&self, state: &mut State) {
+        println!("bne {:?}, {:?}, {}", self.rs1, self.rs2, self.offset);
+        if state.get_reg(self.rs1) != state.get_reg(self.rs2) {
+            state.pc += self.offset;
+        } else {
+            state.pc += 4;
+        }
+    }
+}
+
+pub struct BLT {
+    rs1: XprName,
+    rs2: XprName,
+    offset: i64,
+}
+impl BLT {
+    pub fn new(inst: u32) -> Self {
+        let (rs1, rs2, offset) = rv32i_b_type(inst);
+        BLT { rs1, rs2, offset }
+    }
+}
+impl Instruction for BLT {
+    fn execute(&self, state: &mut State) {
+        println!("blt {:?}, {:?}, {}", self.rs1, self.rs2, self.offset);
+        if state.get_reg(self.rs1) < state.get_reg(self.rs2) {
+            state.pc += self.offset;
+        } else {
+            state.pc += 4;
+        }
+    }
+}
+
+pub struct BGE {
+    rs1: XprName,
+    rs2: XprName,
+    offset: i64,
+}
+impl BGE {
+    pub fn new(inst: u32) -> Self {
+        let (rs1, rs2, offset) = rv32i_b_type(inst);
+        BGE { rs1, rs2, offset }
+    }
+}
+impl Instruction for BGE {
+    fn execute(&self, state: &mut State) {
+        println!("bge {:?}, {:?}, {}", self.rs1, self.rs2, self.offset);
+        if state.get_reg(self.rs1) >= state.get_reg(self.rs2) {
+            state.pc += self.offset;
+        } else {
+            state.pc += 4;
+        }
+    }
+}
+
+pub struct BLTU {
+    rs1: XprName,
+    rs2: XprName,
+    offset: i64,
+}
+impl BLTU {
+    pub fn new(inst: u32) -> Self {
+        let (rs1, rs2, offset) = rv32i_b_type(inst);
+        BLTU { rs1, rs2, offset }
+    }
+}
+impl Instruction for BLTU {
+    fn execute(&self, state: &mut State) {
+        println!("bltu {:?}, {:?}, {}", self.rs1, self.rs2, self.offset);
+        if (state.get_reg(self.rs1) as u64) < state.get_reg(self.rs2) as u64 {
+            state.pc += self.offset;
+        } else {
+            state.pc += 4;
+        }
+    }
+}
+
+pub struct BGEU {
+    rs1: XprName,
+    rs2: XprName,
+    offset: i64,
+}
+impl BGEU {
+    pub fn new(inst: u32) -> Self {
+        let (rs1, rs2, offset) = rv32i_b_type(inst);
+        BGEU { rs1, rs2, offset }
+    }
+}
+impl Instruction for BGEU {
+    fn execute(&self, state: &mut State) {
+        println!("bgeu {:?}, {:?}, {}", self.rs1, self.rs2, self.offset);
+        if state.get_reg(self.rs1) as u64 >= state.get_reg(self.rs2) as u64 {
+            state.pc += self.offset;
+        } else {
+            state.pc += 4;
+        }
+    }
+}
+
 pub struct LB(u32);
 impl LB {
     pub fn new(inst: u32) -> Self {
@@ -139,6 +271,105 @@ impl Instruction for ADDI {
     fn execute(&self, state: &mut State) {
         println!("addi {:?}, {:?}, {}", self.rd, self.rs1, self.imm);
         state.set_reg(self.rd, state.get_reg(self.rs1) + self.imm);
+        state.pc += 4;
+    }
+}
+
+pub struct SLTI {
+    rd: XprName,
+    rs1: XprName,
+    imm: i64,
+}
+impl SLTI {
+    pub fn new(inst: u32) -> Self {
+        let (rd, rs1, imm) = rv32i_i_type(inst);
+        SLTI { rd, rs1, imm }
+    }
+}
+impl Instruction for SLTI {
+    fn execute(&self, state: &mut State) {
+        println!("slti {:?}, {:?}, {}", self.rd, self.rs1, self.imm);
+        let rs1 = state.get_reg(self.rs1);
+        let value = if rs1 < self.imm { 1 } else { 0 };
+        state.set_reg(self.rd, value);
+        state.pc += 4;
+    }
+}
+
+pub struct SLTIU {
+    rd: XprName,
+    rs1: XprName,
+    imm: i64,
+}
+impl SLTIU {
+    pub fn new(inst: u32) -> Self {
+        let (rd, rs1, imm) = rv32i_i_type(inst);
+        SLTIU { rd, rs1, imm }
+    }
+}
+impl Instruction for SLTIU {
+    fn execute(&self, state: &mut State) {
+        println!("sltiu {:?}, {:?}, {}", self.rd, self.rs1, self.imm);
+        let rs1 = state.get_reg(self.rs1);
+        let value = if (rs1 as u64) < self.imm as u64 { 1 } else { 0 };
+        state.set_reg(self.rd, value);
+        state.pc += 4;
+    }
+}
+
+pub struct XORI {
+    rd: XprName,
+    rs1: XprName,
+    imm: i64,
+}
+impl XORI {
+    pub fn new(inst: u32) -> Self {
+        let (rd, rs1, imm) = rv32i_i_type(inst);
+        XORI { rd, rs1, imm }
+    }
+}
+impl Instruction for XORI {
+    fn execute(&self, state: &mut State) {
+        println!("xori {:?}, {:?}, {}", self.rd, self.rs1, self.imm);
+        state.set_reg(self.rd, state.get_reg(self.rs1) ^ self.imm);
+        state.pc += 4;
+    }
+}
+
+pub struct ORI {
+    rd: XprName,
+    rs1: XprName,
+    imm: i64,
+}
+impl ORI {
+    pub fn new(inst: u32) -> Self {
+        let (rd, rs1, imm) = rv32i_i_type(inst);
+        ORI { rd, rs1, imm }
+    }
+}
+impl Instruction for ORI {
+    fn execute(&self, state: &mut State) {
+        println!("ori {:?}, {:?}, {}", self.rd, self.rs1, self.imm);
+        state.set_reg(self.rd, state.get_reg(self.rs1) | self.imm);
+        state.pc += 4;
+    }
+}
+
+pub struct ANDI {
+    rd: XprName,
+    rs1: XprName,
+    imm: i64,
+}
+impl ANDI {
+    pub fn new(inst: u32) -> Self {
+        let (rd, rs1, imm) = rv32i_i_type(inst);
+        ANDI { rd, rs1, imm }
+    }
+}
+impl Instruction for ANDI {
+    fn execute(&self, state: &mut State) {
+        println!("andi {:?}, {:?}, {}", self.rd, self.rs1, self.imm);
+        state.set_reg(self.rd, state.get_reg(self.rs1) & self.imm);
         state.pc += 4;
     }
 }

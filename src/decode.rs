@@ -1,7 +1,10 @@
 use crate::{
     error::{SimError, SimResult},
     instructions::{
-        rv32i::{ADDI, AUIPC, JAL, JALR, LB, LUI},
+        rv32i::{
+            ADDI, ANDI, AUIPC, BEQ, BGE, BGEU, BLT, BLTU, BNE, JAL, JALR, LB, LUI, ORI, SLTI,
+            SLTIU, XORI,
+        },
         rvc::{
             C_ADD, C_ADDI, C_ADDI4SPN, C_ADDW, C_AND, C_EBREAK, C_FLD, C_FLDSP, C_FLWSP, C_FSD,
             C_FSDSP, C_FSWSP, C_JAL, C_JALR, C_JR, C_LD, C_LDSP, C_LI, C_LQSP, C_LW, C_LWSP, C_MV,
@@ -192,9 +195,7 @@ impl State {
                 RV32 => Ok(Box::new(C_FSWSP::new(inst))),
                 RV64 | RV128 => Ok(Box::new(C_SDSP::new(inst))),
             },
-            _ => {
-                panic!("unexpected branch");
-            }
+            _ => panic!("unexpected branch"),
         }
     }
 
@@ -202,9 +203,7 @@ impl State {
         let funct = x(inst, 12, 3);
         match funct {
             0b000 => Ok(Box::new(LB::new(inst))),
-            _ => {
-                panic!()
-            }
+            _ => panic!(),
         }
     }
     fn decode_inst_op_00001(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
@@ -220,9 +219,12 @@ impl State {
         let funct = x(inst, 12, 3);
         match funct {
             0b000 => Ok(Box::new(ADDI::new(inst))),
-            _ => {
-                panic!()
-            }
+            0b010 => Ok(Box::new(SLTI::new(inst))),
+            0b011 => Ok(Box::new(SLTIU::new(inst))),
+            0b100 => Ok(Box::new(XORI::new(inst))),
+            0b110 => Ok(Box::new(ORI::new(inst))),
+            0b111 => Ok(Box::new(ANDI::new(inst))),
+            _ => panic!(),
         }
     }
     fn decode_inst_op_00110(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
@@ -235,7 +237,16 @@ impl State {
         panic!()
     }
     fn decode_inst_op_11000(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
-        panic!()
+        let flag = x(inst, 12, 3);
+        match flag {
+            0b000 => Ok(Box::new(BEQ::new(inst))),
+            0b001 => Ok(Box::new(BNE::new(inst))),
+            0b100 => Ok(Box::new(BLT::new(inst))),
+            0b101 => Ok(Box::new(BGE::new(inst))),
+            0b110 => Ok(Box::new(BLTU::new(inst))),
+            0b111 => Ok(Box::new(BGEU::new(inst))),
+            _ => panic!("unexpected branch"),
+        }
     }
     fn decode_inst_op_11100(&self, inst: u32) -> SimResult<Box<dyn Instruction>> {
         panic!()
