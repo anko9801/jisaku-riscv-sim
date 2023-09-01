@@ -1,6 +1,7 @@
 mod decode;
 mod error;
 pub mod instructions;
+mod mmu;
 mod processor;
 mod utils;
 
@@ -9,7 +10,6 @@ use processor::State;
 use crate::decode::InstructionRaw;
 
 fn main() {
-    let path = std::path::PathBuf::from("sample-objects/symver.x86_64.so");
     let insts = vec![
         0x41, 0x11, // addi sp,sp,-16
         0x06, 0xe4, // sd ra,8(sp)
@@ -23,12 +23,13 @@ fn main() {
         0x82, 0x80, // ret
     ];
     let mut state = State::new();
-    while state.pc < insts.len() as i64 {
-        let inst = InstructionRaw::get_inst(&insts, state.pc as usize);
-        let inst = state.decode_inst(inst);
+    state.read_elf();
+    while state.pc < 0x10112 {
+        state.print_regs();
+        let inst = state.get_inst();
         match inst {
             Ok(inst) => inst.effect(&mut state),
-            Err(e) => panic!("{:?}", e),
+            Err(e) => panic!("{}", e),
         }
     }
 }

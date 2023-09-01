@@ -311,7 +311,7 @@ impl C_JR {
 impl Instruction for C_JR {
     fn effect(&self, state: &mut State) {
         println!("ret");
-        state.regs.get(XprName::ra);
+        state.get_reg(XprName::ra);
         state.pc += 2;
     }
 }

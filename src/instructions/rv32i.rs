@@ -59,14 +59,20 @@ impl Instruction for LUI {
     }
 }
 
-pub struct AUIPC(u32);
+pub struct AUIPC {
+    rd: XprName,
+    imm: i64,
+}
 impl AUIPC {
     pub fn new(inst: u32) -> Self {
-        AUIPC(inst)
+        let (rd, imm) = rv32i_u_type(inst);
+        AUIPC { rd, imm: imm << 12 }
     }
 }
 impl Instruction for AUIPC {
     fn effect(&self, state: &mut State) {
+        println!("auipc {:?},{:#x}", self.rd, self.imm);
+        state.set_reg(self.rd, state.pc + self.imm);
         state.pc += 4;
     }
 }
@@ -131,6 +137,7 @@ impl ADDI {
 impl Instruction for ADDI {
     fn effect(&self, state: &mut State) {
         println!("addi {:?}, {:?}, {}", self.rd, self.rs1, self.imm);
+        state.set_reg(self.rd, state.get_reg(self.rs1) + self.imm);
         state.pc += 4;
     }
 }

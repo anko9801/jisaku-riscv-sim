@@ -1,5 +1,9 @@
+use std::collections::HashMap;
+
 use enumn::N;
 use strum_macros::EnumString;
+
+use crate::{error::SimResult, instructions::Instruction, utils::x};
 
 pub enum XLEN {
     RV32,
@@ -279,6 +283,8 @@ pub struct State {
     pub scause: Reg,
 
     pub dpc: Reg,
+
+    pub memory: HashMap<u64, u8>,
     //   pub dscratch0, dscratch1: Reg,
     //   dcsr_t dcsr;
     //   pub tselect: Reg,
@@ -316,6 +322,59 @@ impl State {
             scause: 0,
 
             dpc: 0,
+
+            memory: HashMap::new(),
         }
+    }
+
+    pub fn print_regs(&self) {
+        use XprName::*;
+        let xprs = vec![
+            ra, sp, gp, tp, a0, a1, a2, a3, a4, a5, a6, a7, s0, s1, s2, s3, s4, s5, s6, s7, s8, t0,
+            t1, t2, t3, t4, t5, t6,
+        ];
+        println!("pc: {:#x}", self.pc);
+        for i in 0..xprs.len() {
+            print!("{:?}: {:016x}\t", xprs[i], self.get_reg(xprs[i]));
+            if i % 4 == 3 {
+                print!("\n");
+            }
+        }
+    }
+    pub fn get_reg(&self, xpr: XprName) -> i64 {
+        self.regs.get(xpr)
+    }
+    pub fn set_reg(&mut self, xpr: XprName, value: i64) {
+        self.regs.set(xpr, value);
+    }
+
+    pub fn get_inst(&self) -> SimResult<Box<dyn Instruction>> {
+        use crate::InstructionRaw::*;
+        let base = self.access(self.pc);
+        let inst = if x(base, 0, 2) != 0b11 {
+            B16(u16::from_le_bytes([
+                self.access(self.pc),
+                self.access(self.pc + 1),
+            ]))
+        } else if x(base, 2, 3) != 0b111 {
+            B32(u32::from_le_bytes([
+                self.access(self.pc),
+                self.access(self.pc + 1),
+                self.access(self.pc + 2),
+                self.access(self.pc + 3),
+            ]))
+        } else if x(base, 5, 1) != 1 {
+            panic!("too long instruction");
+        } else if x(base, 6, 1) != 1 {
+            panic!("too long instruction");
+        } else {
+            panic!("too long instruction");
+        };
+
+        self.decode_inst(inst)
+    }
+
+    pub fn access(&self, pc: i64) -> u8 {
+        self.memory[&(pc as u64)]
     }
 }
