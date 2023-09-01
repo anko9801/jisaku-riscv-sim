@@ -17,7 +17,7 @@ pub fn rv32i_r_type(inst: u32) -> (XprName, XprName, XprName) {
 pub fn rv32i_i_type(inst: u32) -> (XprName, XprName, i64) {
     let rd = x(inst, 7, 5);
     let rs1 = x(inst, 15, 5);
-    let imm = x(inst, 20, 12);
+    let imm = x(inst, 20, 11) - (x(inst, 31, 1) << 11);
     (XprName::from_num(rd), XprName::from_num(rs1), imm)
 }
 pub fn rv32i_s_type(inst: u32) -> (XprName, XprName, i64) {
