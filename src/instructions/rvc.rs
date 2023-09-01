@@ -642,14 +642,22 @@ impl Instruction for C_JALR {
     }
 }
 
-pub struct C_ADD(u16);
+pub struct C_ADD {
+    rs1: XprName,
+    rs2: XprName,
+}
 impl C_ADD {
     pub fn new(inst: u16) -> Self {
-        C_ADD(inst)
+        let (rs1, rs2) = rvc_cr_type(inst);
+        C_ADD { rs1, rs2 }
     }
 }
 impl Instruction for C_ADD {
     fn execute(&self, state: &mut State) {
+        println!("add {:?}, {:?}, {:?}", self.rs1, self.rs1, self.rs2);
+        let rs1 = state.get_reg(self.rs1);
+        let rs2 = state.get_reg(self.rs2);
+        state.set_reg(self.rs1, rs1 + rs2);
         state.pc += 2;
     }
 }
