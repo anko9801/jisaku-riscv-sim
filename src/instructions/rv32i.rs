@@ -54,7 +54,7 @@ impl LUI {
     }
 }
 impl Instruction for LUI {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 4;
     }
 }
@@ -66,13 +66,13 @@ pub struct AUIPC {
 impl AUIPC {
     pub fn new(inst: u32) -> Self {
         let (rd, imm) = rv32i_u_type(inst);
-        AUIPC { rd, imm: imm << 12 }
+        AUIPC { rd, imm }
     }
 }
 impl Instruction for AUIPC {
-    fn effect(&self, state: &mut State) {
-        println!("auipc {:?},{:#x}", self.rd, self.imm);
-        state.set_reg(self.rd, state.pc + self.imm);
+    fn execute(&self, state: &mut State) {
+        println!("auipc {:?}, {:#x}", self.rd, self.imm);
+        state.set_reg(self.rd, state.pc + (self.imm << 12));
         state.pc += 4;
     }
 }
@@ -88,7 +88,7 @@ impl JAL {
     }
 }
 impl Instruction for JAL {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         println!("jal {:?} {}", self.rd, self.imm);
         state.pc += 4;
     }
@@ -106,7 +106,7 @@ impl JALR {
     }
 }
 impl Instruction for JALR {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 4;
     }
 }
@@ -118,7 +118,7 @@ impl LB {
     }
 }
 impl Instruction for LB {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 4;
     }
 }
@@ -135,7 +135,7 @@ impl ADDI {
     }
 }
 impl Instruction for ADDI {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         println!("addi {:?}, {:?}, {}", self.rd, self.rs1, self.imm);
         state.set_reg(self.rd, state.get_reg(self.rs1) + self.imm);
         state.pc += 4;

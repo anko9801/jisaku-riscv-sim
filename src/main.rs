@@ -29,7 +29,7 @@ fn main() {
         let inst = state.get_inst();
         print!("{:#x}:\t", state.pc);
         match inst {
-            Ok(inst) => inst.effect(&mut state),
+            Ok(inst) => inst.execute(&mut state),
             Err(e) => panic!("{}", e),
         }
     }

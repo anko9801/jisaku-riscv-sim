@@ -5,5 +5,5 @@ use crate::processor::State;
 
 pub trait Instruction {
     // fn asm(&self) -> String;
-    fn effect(&self, state: &mut State);
+    fn execute(&self, state: &mut State);
 }

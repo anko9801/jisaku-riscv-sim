@@ -51,7 +51,7 @@ impl C_ADDI4SPN {
     }
 }
 impl Instruction for C_ADDI4SPN {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -63,7 +63,7 @@ impl C_FLD {
     }
 }
 impl Instruction for C_FLD {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -75,7 +75,7 @@ impl C_LW {
     }
 }
 impl Instruction for C_LW {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -93,7 +93,7 @@ impl C_LD {
     }
 }
 impl Instruction for C_LD {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         println!("ld");
         state.pc += 2;
     }
@@ -106,7 +106,7 @@ impl C_FSD {
     }
 }
 impl Instruction for C_FSD {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -118,7 +118,7 @@ impl C_SW {
     }
 }
 impl Instruction for C_SW {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -130,7 +130,7 @@ impl C_SD {
     }
 }
 impl Instruction for C_SD {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         println!("sd ");
         state.pc += 2;
     }
@@ -143,7 +143,7 @@ impl C_NOP {
     }
 }
 impl Instruction for C_NOP {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -163,7 +163,7 @@ impl C_ADDI {
     }
 }
 impl Instruction for C_ADDI {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         println!("addi {:?}, {:?}, {}", self.rd, self.rd, self.imm);
         let rd_value = state.regs.get(self.rd);
         state.regs.set(self.rd, rd_value + self.imm);
@@ -188,7 +188,7 @@ impl C_JAL {
     }
 }
 impl Instruction for C_JAL {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         println!("jal {}", self.offset);
         state.pc += 2;
     }
@@ -206,7 +206,7 @@ impl C_LI {
     }
 }
 impl Instruction for C_LI {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         println!("li {:?}, {}", self.rd, self.imm);
         state.pc += 2;
     }
@@ -219,7 +219,7 @@ impl C_SLLI {
     }
 }
 impl Instruction for C_SLLI {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -231,7 +231,7 @@ impl C_SLLI64 {
     }
 }
 impl Instruction for C_SLLI64 {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -243,7 +243,7 @@ impl C_FLDSP {
     }
 }
 impl Instruction for C_FLDSP {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -255,7 +255,7 @@ impl C_LQSP {
     }
 }
 impl Instruction for C_LQSP {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -267,7 +267,7 @@ impl C_LWSP {
     }
 }
 impl Instruction for C_LWSP {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -279,7 +279,7 @@ impl C_FLWSP {
     }
 }
 impl Instruction for C_FLWSP {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -296,7 +296,7 @@ impl C_LDSP {
     }
 }
 impl Instruction for C_LDSP {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         println!("ld {:?}, {}(sp)", self.rd, self.offset);
         state.pc += 2;
     }
@@ -309,7 +309,7 @@ impl C_JR {
     }
 }
 impl Instruction for C_JR {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         println!("ret");
         state.get_reg(XprName::ra);
         state.pc += 2;
@@ -323,7 +323,7 @@ impl C_MV {
     }
 }
 impl Instruction for C_MV {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -335,7 +335,7 @@ impl C_EBREAK {
     }
 }
 impl Instruction for C_EBREAK {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -347,7 +347,7 @@ impl C_JALR {
     }
 }
 impl Instruction for C_JALR {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -359,7 +359,7 @@ impl C_ADD {
     }
 }
 impl Instruction for C_ADD {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -371,7 +371,7 @@ impl C_FSDSP {
     }
 }
 impl Instruction for C_FSDSP {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -383,7 +383,7 @@ impl C_SQSP {
     }
 }
 impl Instruction for C_SQSP {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -395,7 +395,7 @@ impl C_SWSP {
     }
 }
 impl Instruction for C_SWSP {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -407,7 +407,7 @@ impl C_FSWSP {
     }
 }
 impl Instruction for C_FSWSP {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         state.pc += 2;
     }
 }
@@ -424,7 +424,7 @@ impl C_SDSP {
     }
 }
 impl Instruction for C_SDSP {
-    fn effect(&self, state: &mut State) {
+    fn execute(&self, state: &mut State) {
         println!("sd {:?}, {}(sp)", self.rs2, self.offset);
         let sp_val = state.regs.get(sp);
         state.regs.set(self.rs2, sp_val + self.offset);
