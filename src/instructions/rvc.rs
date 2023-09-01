@@ -24,24 +24,24 @@ fn rvc_css_type(inst: u16) -> (XprName, i64) {
 #[inline]
 fn rvc_ciw_type(inst: u16) -> XprName {
     let rd = x(inst, 2, 3);
-    XprName::from_num(rd + 0x10)
+    XprName::from_num(rd + 0x8)
 }
 #[inline]
 fn rvc_cl_type(inst: u16) -> (XprName, XprName) {
     let rd = x(inst, 2, 3);
     let rs1 = x(inst, 7, 3);
-    (XprName::from_num(rd + 0x10), XprName::from_num(rs1 + 0x10))
+    (XprName::from_num(rd + 0x8), XprName::from_num(rs1 + 0x8))
 }
 #[inline]
 fn rvc_cs_type(inst: u16) -> (XprName, XprName) {
     let rs2 = x(inst, 2, 3);
     let rs1 = x(inst, 7, 3);
-    (XprName::from_num(rs2 + 0x10), XprName::from_num(rs1 + 0x10))
+    (XprName::from_num(rs2 + 0x8), XprName::from_num(rs1 + 0x8))
 }
 #[inline]
 fn rvc_cb_type(inst: u16) -> XprName {
     let rs1 = x(inst, 7, 3);
-    XprName::from_num(rs1 + 0x10)
+    XprName::from_num(rs1 + 0x8)
 }
 #[inline]
 fn rvc_cj_type(inst: u16) -> i64 {
@@ -68,10 +68,17 @@ impl Instruction for C_ADDI4SPN {
     }
 }
 
-pub struct C_FLD(u16);
+pub struct C_FLD {
+    rd: XprName,
+    rs1: XprName,
+    uimm: u64,
+}
 impl C_FLD {
     pub fn new(inst: u16) -> Self {
-        C_FLD(inst)
+        let (rd, rs1) = rvc_cl_type(inst);
+        let uimm: u64 =
+            ((x(inst, 5, 1) << 6) + (x(inst, 6, 1) << 2) + (x(inst, 10, 3) << 3)) as u64;
+        C_FLD { rd, rs1, uimm }
     }
 }
 impl Instruction for C_FLD {
@@ -80,14 +87,49 @@ impl Instruction for C_FLD {
     }
 }
 
-pub struct C_LW(u16);
+pub struct C_LQ {
+    rd: XprName,
+    rs1: XprName,
+    offset: u64,
+}
+impl C_LQ {
+    pub fn new(inst: u16) -> Self {
+        let (rd, rs1) = rvc_cl_type(inst);
+        let offset: u64 =
+            ((x(inst, 5, 2) << 6) + (x(inst, 10, 1) << 8) + (x(inst, 11, 2) << 4)) as u64;
+        C_LQ { rd, rs1, offset }
+    }
+}
+impl Instruction for C_LQ {
+    fn execute(&self, state: &mut State) {
+        // TODO: 128 bit
+        println!("lq {:?}, {}({:?})", self.rd, self.offset, self.rs1);
+        let addr = state.get_reg(self.rs1) + self.offset as i64;
+        let mem = state.access_u64(addr);
+        state.set_reg(self.rd, mem as i64);
+        state.pc += 2;
+    }
+}
+
+pub struct C_LW {
+    rd: XprName,
+    rs1: XprName,
+    offset: u64,
+}
 impl C_LW {
     pub fn new(inst: u16) -> Self {
-        C_LW(inst)
+        let (rd, rs1) = rvc_cl_type(inst);
+        let offset: u64 =
+            ((x(inst, 5, 1) << 6) + (x(inst, 6, 1) << 2) + (x(inst, 10, 3) << 3)) as u64;
+        C_LW { rd, rs1, offset }
     }
 }
 impl Instruction for C_LW {
     fn execute(&self, state: &mut State) {
+        println!("lw {:?}, {}({:?})", self.rd, self.offset, self.rs1);
+        let addr = state.get_reg(self.rs1) + self.offset as i64;
+        let mem = state.access_u32(addr);
+        state.set_reg(self.rd, mem as i64);
         state.pc += 2;
     }
 }
@@ -95,26 +137,36 @@ impl Instruction for C_LW {
 pub struct C_LD {
     rd: XprName,
     rs1: XprName,
-    imm: u64,
+    offset: u64,
 }
 impl C_LD {
     pub fn new(inst: u16) -> Self {
         let (rd, rs1) = rvc_cs_type(inst);
-        let imm = ((x(inst, 5, 2) << 6) + (x(inst, 10, 2) << 3)) as u64;
-        C_LD { rd, rs1, imm }
+        let offset = ((x(inst, 5, 2) << 6) + (x(inst, 10, 3) << 3)) as u64;
+        C_LD { rd, rs1, offset }
     }
 }
 impl Instruction for C_LD {
     fn execute(&self, state: &mut State) {
-        println!("ld");
+        println!("ld {:?}, {}({:?})", self.rd, self.offset, self.rs1);
+        let addr = state.get_reg(self.rs1) + self.offset as i64;
+        let mem = state.access_u32(addr);
+        state.set_reg(self.rd, mem as i64);
         state.pc += 2;
     }
 }
 
-pub struct C_FSD(u16);
+pub struct C_FSD {
+    rd: XprName,
+    rs1: XprName,
+    offset: u64,
+}
 impl C_FSD {
     pub fn new(inst: u16) -> Self {
-        C_FSD(inst)
+        let (rd, rs1) = rvc_cl_type(inst);
+        let offset: u64 =
+            ((x(inst, 5, 1) << 6) + (x(inst, 6, 1) << 2) + (x(inst, 10, 3) << 3)) as u64;
+        C_FSD { rd, rs1, offset }
     }
 }
 impl Instruction for C_FSD {
@@ -123,10 +175,37 @@ impl Instruction for C_FSD {
     }
 }
 
-pub struct C_SW(u16);
+pub struct C_SQ {
+    rs1: XprName,
+    rs2: XprName,
+    offset: u64,
+}
+impl C_SQ {
+    pub fn new(inst: u16) -> Self {
+        let (rs2, rs1) = rvc_cs_type(inst);
+        let offset: u64 =
+            ((x(inst, 5, 2) << 6) + (x(inst, 10, 1) << 8) + (x(inst, 11, 2) << 4)) as u64;
+        C_SQ { rs2, rs1, offset }
+    }
+}
+impl Instruction for C_SQ {
+    fn execute(&self, state: &mut State) {
+        // TODO: 128 bit
+        state.pc += 2;
+    }
+}
+
+pub struct C_SW {
+    rs1: XprName,
+    rs2: XprName,
+    offset: u64,
+}
 impl C_SW {
     pub fn new(inst: u16) -> Self {
-        C_SW(inst)
+        let (rs2, rs1) = rvc_cs_type(inst);
+        let offset: u64 =
+            ((x(inst, 5, 2) << 6) + (x(inst, 10, 1) << 8) + (x(inst, 11, 2) << 4)) as u64;
+        C_SW { rs2, rs1, offset }
     }
 }
 impl Instruction for C_SW {
@@ -135,15 +214,24 @@ impl Instruction for C_SW {
     }
 }
 
-pub struct C_SD(u16);
+pub struct C_SD {
+    rs1: XprName,
+    rs2: XprName,
+    offset: u64,
+}
 impl C_SD {
     pub fn new(inst: u16) -> Self {
-        C_SD(inst)
+        let (rs2, rs1) = rvc_cs_type(inst);
+        let offset = ((x(inst, 5, 2) << 6) + (x(inst, 10, 3) << 3)) as u64;
+        C_SD { rs2, rs1, offset }
     }
 }
 impl Instruction for C_SD {
     fn execute(&self, state: &mut State) {
-        println!("sd ");
+        println!("sd {:?}, {}({:?})", self.rs2, self.offset, self.rs1);
+        let addr = state.get_reg(self.rs1) + self.offset as i64;
+        let rs2 = state.get_reg(self.rs2);
+        state.store_u64(addr, rs2 as u64);
         state.pc += 2;
     }
 }

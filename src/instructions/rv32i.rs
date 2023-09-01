@@ -28,7 +28,7 @@ pub fn rv32i_s_type(inst: u32) -> (XprName, XprName, i64) {
 }
 pub fn rv32i_b_type(inst: u32) -> (XprName, XprName, i64) {
     let imm =
-        (x(inst, 7, 1) << 11) + x(inst, 8, 4) + (x(inst, 25, 6) << 5) + (x(inst, 31, 1) << 12);
+        (x(inst, 7, 1) << 11) + x(inst, 8, 4) + (x(inst, 25, 6) << 5) - (x(inst, 31, 1) << 12);
     let rs1 = x(inst, 15, 5);
     let rs2 = x(inst, 20, 5);
     (XprName::from_num(rs1), XprName::from_num(rs2), imm)

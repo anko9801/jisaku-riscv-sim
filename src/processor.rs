@@ -377,4 +377,42 @@ impl State {
     pub fn access(&self, pc: i64) -> u8 {
         self.memory[&(pc as u64)]
     }
+
+    pub fn access_u16(&self, addr: i64) -> u16 {
+        u16::from_le_bytes([self.access(addr), self.access(addr + 1)])
+    }
+
+    pub fn access_u32(&self, addr: i64) -> u32 {
+        u32::from_le_bytes([
+            self.access(addr),
+            self.access(addr + 1),
+            self.access(addr + 2),
+            self.access(addr + 3),
+        ])
+    }
+
+    pub fn access_u64(&self, addr: i64) -> u64 {
+        u64::from_le_bytes([
+            self.access(addr),
+            self.access(addr + 1),
+            self.access(addr + 2),
+            self.access(addr + 3),
+            self.access(addr + 4),
+            self.access(addr + 5),
+            self.access(addr + 6),
+            self.access(addr + 7),
+        ])
+    }
+
+    pub fn store_u64(&mut self, addr: i64, data: u64) {
+        let data = data.to_le_bytes();
+        *self.memory.entry(addr as u64).or_insert(0) += data[0];
+        *self.memory.entry((addr + 1) as u64).or_insert(0) += data[1];
+        *self.memory.entry((addr + 2) as u64).or_insert(0) += data[2];
+        *self.memory.entry((addr + 3) as u64).or_insert(0) += data[3];
+        *self.memory.entry((addr + 4) as u64).or_insert(0) += data[4];
+        *self.memory.entry((addr + 5) as u64).or_insert(0) += data[5];
+        *self.memory.entry((addr + 6) as u64).or_insert(0) += data[6];
+        *self.memory.entry((addr + 7) as u64).or_insert(0) += data[7];
+    }
 }
