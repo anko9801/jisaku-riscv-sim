@@ -232,6 +232,7 @@ impl C_SRLI {
 impl Instruction for C_SRLI {
     fn execute(&self, state: &mut State) {
         println!("srli {:?}, {}", self.rd, self.shamt);
+        // TODO: Logical ?
         let rd = state.get_reg(self.rd);
         state.set_reg(self.rd, rd >> self.shamt);
         state.pc += 2;
@@ -245,14 +246,12 @@ pub struct C_SRLI64 {
 impl C_SRLI64 {
     pub fn new(inst: u16) -> Self {
         let rd = rvc_cb_type(inst);
-        let shamt = x(inst, 2, 5) + (x(inst, 12, 1) << 5);
-        C_SRLI64 { rd, shamt }
+        C_SRLI64 { rd, shamt: 64 }
     }
 }
 impl Instruction for C_SRLI64 {
     fn execute(&self, state: &mut State) {
         println!("srli64 {:?}, {}", self.rd, self.shamt);
-        // TODO: Logical ?
         let rd = state.get_reg(self.rd);
         state.set_reg(self.rd, rd >> self.shamt);
         state.pc += 2;
@@ -273,6 +272,7 @@ impl C_SRAI {
 impl Instruction for C_SRAI {
     fn execute(&self, state: &mut State) {
         println!("srai {:?}, {}", self.rd, self.shamt);
+        // TODO: Arithmetic ?
         let rd = state.get_reg(self.rd);
         state.set_reg(self.rd, rd >> self.shamt);
         state.pc += 2;
@@ -286,14 +286,12 @@ pub struct C_SRAI64 {
 impl C_SRAI64 {
     pub fn new(inst: u16) -> Self {
         let rd = rvc_cb_type(inst);
-        let shamt = x(inst, 2, 5) + (x(inst, 12, 1) << 5);
-        C_SRAI64 { rd, shamt }
+        C_SRAI64 { rd, shamt: 64 }
     }
 }
 impl Instruction for C_SRAI64 {
     fn execute(&self, state: &mut State) {
         println!("srai64 {:?}, {}", self.rd, self.shamt);
-        // TODO: Arithmetic ?
         let rd = state.get_reg(self.rd);
         state.set_reg(self.rd, rd >> self.shamt);
         state.pc += 2;
