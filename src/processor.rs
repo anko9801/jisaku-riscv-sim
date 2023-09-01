@@ -251,17 +251,71 @@ impl FPR {
 }
 
 pub struct State {
-    pub regs: XPR,
-    pub pc: Reg,
     pub xlen: XLEN,
+
+    pub pc: Reg,
+    pub regs: XPR,
+
+    pub prv: Reg, // TODO: Can this be an enum instead?
+    pub misa: Reg,
+    pub mstatus: Reg,
+    pub mepc: Reg,
+    pub mtval: Reg,
+    pub mscratch: Reg,
+    pub mtvec: Reg,
+    pub mcause: Reg,
+    pub minstret: Reg,
+    pub mie: Reg,
+    pub mip: Reg,
+    pub medeleg: Reg,
+    pub mideleg: Reg,
+    //   uint32_t mcounteren;
+    //   uint32_t scounteren;
+    pub sepc: Reg,
+    pub stval: Reg,
+    pub sscratch: Reg,
+    pub stvec: Reg,
+    pub satp: Reg,
+    pub scause: Reg,
+
+    pub dpc: Reg,
+    //   pub dscratch0, dscratch1: Reg,
+    //   dcsr_t dcsr;
+    //   pub tselect: Reg,
+    //   mcontrol_t mcontrol[num_triggers];
+    //   pub tdata2[num_triggers]: Reg,
+    //   bool debug_mode;
 }
 
 impl State {
     pub fn new() -> Self {
         State {
-            regs: XPR::new(),
             pc: 0,
             xlen: XLEN::RV64,
+            regs: XPR::new(),
+            prv: 0,
+            misa: 0,
+            mstatus: 0,
+            mepc: 0,
+            mtval: 0,
+            mscratch: 0,
+            mtvec: 0,
+            mcause: 0,
+            minstret: 0,
+            mie: 0,
+            mip: 0,
+            medeleg: 0,
+            mideleg: 0,
+            //   uint32_t mcounteren;
+            //   uint32_t scounteren;
+            sepc: 0,
+            stval: 0,
+            sscratch: 0,
+            stvec: 0,
+            satp: 0,
+            scause: 0,
+
+            dpc: 0,
         }
     }
 }
