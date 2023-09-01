@@ -6,10 +6,10 @@ use crate::{
             SLTIU, XORI,
         },
         rvc::{
-            C_ADD, C_ADDI, C_ADDI4SPN, C_ADDW, C_AND, C_BEQZ, C_BNEZ, C_EBREAK, C_FLD, C_FLDSP,
-            C_FLWSP, C_FSD, C_FSDSP, C_FSWSP, C_J, C_JAL, C_JALR, C_JR, C_LD, C_LDSP, C_LI, C_LQSP,
-            C_LW, C_LWSP, C_MV, C_NOP, C_OR, C_SD, C_SDSP, C_SLLI, C_SLLI64, C_SQSP, C_SUB, C_SUBW,
-            C_SW, C_SWSP, C_XOR,
+            C_ADD, C_ADDI, C_ADDI4SPN, C_ADDW, C_AND, C_ANDI, C_BEQZ, C_BNEZ, C_EBREAK, C_FLD,
+            C_FLDSP, C_FLWSP, C_FSD, C_FSDSP, C_FSWSP, C_J, C_JAL, C_JALR, C_JR, C_LD, C_LDSP,
+            C_LI, C_LQSP, C_LW, C_LWSP, C_MV, C_NOP, C_OR, C_SD, C_SDSP, C_SLLI, C_SLLI64, C_SQSP,
+            C_SRAI, C_SRAI64, C_SRLI, C_SRLI64, C_SUB, C_SUBW, C_SW, C_SWSP, C_XOR,
         },
         Instruction,
     },
@@ -144,6 +144,11 @@ impl State {
                 let flag2 = x(inst, 10, 2);
                 let flag3 = x(inst, 12, 1);
                 match (flag1, flag2, flag3) {
+                    (0b00, 0b00, 0) => Ok(Box::new(C_SRLI64::new(inst))),
+                    (_, 0b00, _) => Ok(Box::new(C_SRLI::new(inst))),
+                    (0b00, 0b01, 0) => Ok(Box::new(C_SRAI64::new(inst))),
+                    (_, 0b01, _) => Ok(Box::new(C_SRAI::new(inst))),
+                    (_, 0b10, _) => Ok(Box::new(C_ANDI::new(inst))),
                     (0b00, 0b11, 0) => Ok(Box::new(C_SUB::new(inst))),
                     (0b01, 0b11, 0) => Ok(Box::new(C_XOR::new(inst))),
                     (0b10, 0b11, 0) => Ok(Box::new(C_OR::new(inst))),
