@@ -6,10 +6,10 @@ use crate::{
             SLTIU, XORI,
         },
         rvc::{
-            C_ADD, C_ADDI, C_ADDI4SPN, C_ADDW, C_AND, C_EBREAK, C_FLD, C_FLDSP, C_FLWSP, C_FSD,
-            C_FSDSP, C_FSWSP, C_JAL, C_JALR, C_JR, C_LD, C_LDSP, C_LI, C_LQSP, C_LW, C_LWSP, C_MV,
-            C_NOP, C_OR, C_SD, C_SDSP, C_SLLI, C_SLLI64, C_SQSP, C_SUB, C_SUBW, C_SW, C_SWSP,
-            C_XOR,
+            C_ADD, C_ADDI, C_ADDI4SPN, C_ADDW, C_AND, C_BEQZ, C_BNEZ, C_EBREAK, C_FLD, C_FLDSP,
+            C_FLWSP, C_FSD, C_FSDSP, C_FSWSP, C_J, C_JAL, C_JALR, C_JR, C_LD, C_LDSP, C_LI, C_LQSP,
+            C_LW, C_LWSP, C_MV, C_NOP, C_OR, C_SD, C_SDSP, C_SLLI, C_SLLI64, C_SQSP, C_SUB, C_SUBW,
+            C_SW, C_SWSP, C_XOR,
         },
         Instruction,
     },
@@ -155,6 +155,9 @@ impl State {
                     _ => panic!("unexpected branch"),
                 }
             }
+            0b101 => Ok(Box::new(C_J::new(inst))),
+            0b110 => Ok(Box::new(C_BEQZ::new(inst))),
+            0b111 => Ok(Box::new(C_BNEZ::new(inst))),
             _ => panic!("unexpected branch"),
         }
     }

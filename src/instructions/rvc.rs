@@ -43,6 +43,18 @@ fn rvc_cb_type(inst: u16) -> XprName {
     let rs1 = x(inst, 7, 3);
     XprName::from_num(rs1 + 0x10)
 }
+#[inline]
+fn rvc_cj_type(inst: u16) -> i64 {
+    let imm = (x(inst, 2, 1) << 5)
+        + (x(inst, 3, 3) << 1)
+        + (x(inst, 6, 1) << 7)
+        + (x(inst, 7, 1) << 6)
+        + (x(inst, 8, 1) << 10)
+        + (x(inst, 9, 2) << 8)
+        + (x(inst, 11, 1) << 4)
+        + (x(inst, 12, 1) << 11);
+    imm
+}
 
 pub struct C_ADDI4SPN(u16);
 impl C_ADDI4SPN {
@@ -176,15 +188,8 @@ pub struct C_JAL {
 }
 impl C_JAL {
     pub fn new(inst: u16) -> Self {
-        let imm = (x(inst, 2, 1) << 5)
-            + (x(inst, 3, 3) << 1)
-            + (x(inst, 6, 1) << 7)
-            + (x(inst, 7, 1) << 6)
-            + (x(inst, 8, 1) << 10)
-            + (x(inst, 9, 2) << 8)
-            + (x(inst, 11, 1) << 4)
-            + (x(inst, 12, 1) << 11);
-        C_JAL { offset: imm }
+        let offset = rvc_cj_type(inst);
+        C_JAL { offset }
     }
 }
 impl Instruction for C_JAL {
@@ -318,6 +323,76 @@ impl Instruction for C_ADDW {
         println!("addw {:?}, {:?}, {:?}", self.rd, self.rd, self.rs2);
         state.set_reg(self.rd, state.get_reg(self.rd) + state.get_reg(self.rs2));
         state.pc += 2;
+    }
+}
+
+pub struct C_J {
+    offset: i64,
+}
+impl C_J {
+    pub fn new(inst: u16) -> Self {
+        let offset = rvc_cj_type(inst);
+        C_J { offset }
+    }
+}
+impl Instruction for C_J {
+    fn execute(&self, state: &mut State) {
+        println!("j {}", self.offset);
+        state.pc += 2;
+    }
+}
+
+pub struct C_BEQZ {
+    rs1: XprName,
+    offset: i64,
+}
+impl C_BEQZ {
+    pub fn new(inst: u16) -> Self {
+        let rs1 = rvc_cb_type(inst);
+        let offset = (x(inst, 3, 1) << 5)
+            + (x(inst, 4, 2) << 1)
+            + (x(inst, 6, 2) << 6)
+            + (x(inst, 10, 2) << 3)
+            - (x(inst, 12, 1) << 8);
+        C_BEQZ { rs1, offset }
+    }
+}
+impl Instruction for C_BEQZ {
+    fn execute(&self, state: &mut State) {
+        println!("beqz {:?}, {}", self.rs1, self.offset);
+        let rs1 = state.get_reg(self.rs1);
+        if rs1 == 0 {
+            state.pc += self.offset;
+        } else {
+            state.pc += 2;
+        }
+    }
+}
+
+pub struct C_BNEZ {
+    rs1: XprName,
+    offset: i64,
+}
+impl C_BNEZ {
+    pub fn new(inst: u16) -> Self {
+        let rs1 = rvc_cb_type(inst);
+        let offset = (x(inst, 3, 1) << 5)
+            + (x(inst, 4, 2) << 1)
+            + (x(inst, 6, 2) << 6)
+            + (x(inst, 10, 2) << 3)
+            - (x(inst, 12, 1) << 8);
+        C_BNEZ { rs1, offset }
+    }
+}
+impl Instruction for C_BNEZ {
+    fn execute(&self, state: &mut State) {
+        println!("bnez {:?}, {}", self.rs1, self.offset);
+        let rs1 = state.get_reg(self.rs1);
+        if rs1 != 0 {
+            state.pc += self.offset;
+        } else {
+            state.pc += 2;
+        }
     }
 }
 
