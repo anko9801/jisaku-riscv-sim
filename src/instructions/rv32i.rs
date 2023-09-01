@@ -54,7 +54,9 @@ impl LUI {
     }
 }
 impl Instruction for LUI {
-    fn effect(&self, state: &mut State) {}
+    fn effect(&self, state: &mut State) {
+        state.pc += 4;
+    }
 }
 
 pub struct AUIPC(u32);
@@ -64,27 +66,43 @@ impl AUIPC {
     }
 }
 impl Instruction for AUIPC {
-    fn effect(&self, state: &mut State) {}
+    fn effect(&self, state: &mut State) {
+        state.pc += 4;
+    }
 }
 
-pub struct JAL(u32);
+pub struct JAL {
+    rd: XprName,
+    imm: i64,
+}
 impl JAL {
     pub fn new(inst: u32) -> Self {
-        JAL(inst)
+        let (rd, imm) = rv32i_j_type(inst);
+        JAL { rd, imm }
     }
 }
 impl Instruction for JAL {
-    fn effect(&self, state: &mut State) {}
+    fn effect(&self, state: &mut State) {
+        println!("jal {:?} {}", self.rd, self.imm);
+        state.pc += 4;
+    }
 }
 
-pub struct JALR(u32);
+pub struct JALR {
+    rd: XprName,
+    rs1: XprName,
+    imm: i64,
+}
 impl JALR {
     pub fn new(inst: u32) -> Self {
-        JALR(inst)
+        let (rd, rs1, imm) = rv32i_i_type(inst);
+        JALR { rd, rs1, imm }
     }
 }
 impl Instruction for JALR {
-    fn effect(&self, state: &mut State) {}
+    fn effect(&self, state: &mut State) {
+        state.pc += 4;
+    }
 }
 
 pub struct LB(u32);
@@ -94,15 +112,25 @@ impl LB {
     }
 }
 impl Instruction for LB {
-    fn effect(&self, state: &mut State) {}
+    fn effect(&self, state: &mut State) {
+        state.pc += 4;
+    }
 }
 
-pub struct ADDI(u32);
+pub struct ADDI {
+    rd: XprName,
+    rs1: XprName,
+    imm: i64,
+}
 impl ADDI {
     pub fn new(inst: u32) -> Self {
-        ADDI(inst)
+        let (rd, rs1, imm) = rv32i_i_type(inst);
+        ADDI { rd, rs1, imm }
     }
 }
 impl Instruction for ADDI {
-    fn effect(&self, state: &mut State) {}
+    fn effect(&self, state: &mut State) {
+        println!("addi {:?}, {:?}, {}", self.rd, self.rs1, self.imm);
+        state.pc += 4;
+    }
 }
