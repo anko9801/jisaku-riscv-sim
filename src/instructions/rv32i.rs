@@ -90,7 +90,8 @@ impl JAL {
 impl Instruction for JAL {
     fn execute(&self, state: &mut State) {
         println!("jal {:?} {}", self.rd, self.imm);
-        state.pc += 4;
+        state.set_reg(self.rd, state.pc + 4);
+        state.pc += self.imm;
     }
 }
 

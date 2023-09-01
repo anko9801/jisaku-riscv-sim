@@ -208,6 +208,7 @@ impl C_LI {
 impl Instruction for C_LI {
     fn execute(&self, state: &mut State) {
         println!("li {:?}, {}", self.rd, self.imm);
+        state.set_reg(self.rd, self.imm);
         state.pc += 2;
     }
 }

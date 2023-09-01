@@ -24,10 +24,10 @@ fn main() {
     ];
     let mut state = State::new();
     state.read_elf();
-    while state.pc < 0x10112 {
+    for _ in 0..100 {
         state.print_regs();
-        let inst = state.get_inst();
         print!("{:#x}:\t", state.pc);
+        let inst = state.get_inst();
         match inst {
             Ok(inst) => inst.execute(&mut state),
             Err(e) => panic!("{}", e),

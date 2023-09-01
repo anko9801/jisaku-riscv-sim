@@ -351,17 +351,18 @@ impl State {
         use crate::InstructionRaw::*;
         let base = self.access(self.pc);
         let inst = if x(base, 0, 2) != 0b11 {
-            B16(u16::from_le_bytes([
-                self.access(self.pc),
-                self.access(self.pc + 1),
-            ]))
+            let inst = u16::from_le_bytes([self.access(self.pc), self.access(self.pc + 1)]);
+            print!("{:04x?}    \t", inst);
+            B16(inst)
         } else if x(base, 2, 3) != 0b111 {
-            B32(u32::from_le_bytes([
+            let inst = u32::from_le_bytes([
                 self.access(self.pc),
                 self.access(self.pc + 1),
                 self.access(self.pc + 2),
                 self.access(self.pc + 3),
-            ]))
+            ]);
+            print!("{:08x?}\t", inst);
+            B32(inst)
         } else if x(base, 5, 1) != 1 {
             panic!("too long instruction");
         } else if x(base, 6, 1) != 1 {
