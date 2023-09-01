@@ -12,7 +12,7 @@ use crate::decode::InstructionRaw;
 fn main() {
     let mut state = State::new();
     state.read_elf();
-    for _ in 0..100 {
+    loop {
         state.print_regs();
         print!("{:#x}:\t", state.pc);
         let inst = state.get_inst();
