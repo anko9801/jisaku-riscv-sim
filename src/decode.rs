@@ -3,9 +3,10 @@ use crate::{
     instructions::{
         rv32i::{ADDI, AUIPC, JAL, JALR, LB, LUI},
         rvc::{
-            C_ADD, C_ADDI, C_ADDI4SPN, C_EBREAK, C_FLD, C_FLDSP, C_FLWSP, C_FSD, C_FSDSP, C_FSWSP,
-            C_JAL, C_JALR, C_JR, C_LD, C_LDSP, C_LI, C_LQSP, C_LW, C_LWSP, C_MV, C_NOP, C_SD,
-            C_SDSP, C_SLLI, C_SLLI64, C_SQSP, C_SW, C_SWSP,
+            C_ADD, C_ADDI, C_ADDI4SPN, C_ADDW, C_AND, C_EBREAK, C_FLD, C_FLDSP, C_FLWSP, C_FSD,
+            C_FSDSP, C_FSWSP, C_JAL, C_JALR, C_JR, C_LD, C_LDSP, C_LI, C_LQSP, C_LW, C_LWSP, C_MV,
+            C_NOP, C_OR, C_SD, C_SDSP, C_SLLI, C_SLLI64, C_SQSP, C_SUB, C_SUBW, C_SW, C_SWSP,
+            C_XOR,
         },
         Instruction,
     },
@@ -135,9 +136,23 @@ impl State {
                 _ => Ok(Box::new(C_JAL::new(inst))),
             },
             0b010 => Ok(Box::new(C_LI::new(inst))),
-            _ => {
-                panic!("unexpected branch");
+            0b100 => {
+                let flag1 = x(inst, 5, 2);
+                let flag2 = x(inst, 10, 2);
+                let flag3 = x(inst, 12, 1);
+                match (flag1, flag2, flag3) {
+                    (0b00, 0b11, 0) => Ok(Box::new(C_SUB::new(inst))),
+                    (0b01, 0b11, 0) => Ok(Box::new(C_XOR::new(inst))),
+                    (0b10, 0b11, 0) => Ok(Box::new(C_OR::new(inst))),
+                    (0b11, 0b11, 0) => Ok(Box::new(C_AND::new(inst))),
+                    (0b00, 0b11, 1) => Ok(Box::new(C_SUBW::new(inst))),
+                    (0b01, 0b11, 1) => Ok(Box::new(C_ADDW::new(inst))),
+                    (0b10, 0b11, 1) => Err(SimError::ParseError("Reserved".to_string())),
+                    (0b11, 0b11, 1) => Err(SimError::ParseError("Reserved".to_string())),
+                    _ => panic!("unexpected branch"),
+                }
             }
+            _ => panic!("unexpected branch"),
         }
     }
 

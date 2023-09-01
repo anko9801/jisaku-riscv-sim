@@ -212,6 +212,114 @@ impl Instruction for C_LI {
     }
 }
 
+pub struct C_SUB {
+    rd: XprName,
+    rs2: XprName,
+}
+impl C_SUB {
+    pub fn new(inst: u16) -> Self {
+        let (rs2, rd) = rvc_cs_type(inst);
+        C_SUB { rd, rs2 }
+    }
+}
+impl Instruction for C_SUB {
+    fn execute(&self, state: &mut State) {
+        println!("sub {:?}, {:?}, {:?}", self.rd, self.rd, self.rs2);
+        state.set_reg(self.rd, state.get_reg(self.rd) - state.get_reg(self.rs2));
+        state.pc += 2;
+    }
+}
+
+pub struct C_XOR {
+    rd: XprName,
+    rs2: XprName,
+}
+impl C_XOR {
+    pub fn new(inst: u16) -> Self {
+        let (rs2, rd) = rvc_cs_type(inst);
+        C_XOR { rd, rs2 }
+    }
+}
+impl Instruction for C_XOR {
+    fn execute(&self, state: &mut State) {
+        println!("xor {:?}, {:?}, {:?}", self.rd, self.rd, self.rs2);
+        state.set_reg(self.rd, state.get_reg(self.rd) ^ state.get_reg(self.rs2));
+        state.pc += 2;
+    }
+}
+
+pub struct C_OR {
+    rd: XprName,
+    rs2: XprName,
+}
+impl C_OR {
+    pub fn new(inst: u16) -> Self {
+        let (rs2, rd) = rvc_cs_type(inst);
+        C_OR { rd, rs2 }
+    }
+}
+impl Instruction for C_OR {
+    fn execute(&self, state: &mut State) {
+        println!("or {:?}, {:?}, {:?}", self.rd, self.rd, self.rs2);
+        state.set_reg(self.rd, state.get_reg(self.rd) | state.get_reg(self.rs2));
+        state.pc += 2;
+    }
+}
+
+pub struct C_AND {
+    rd: XprName,
+    rs2: XprName,
+}
+impl C_AND {
+    pub fn new(inst: u16) -> Self {
+        let (rs2, rd) = rvc_cs_type(inst);
+        C_AND { rd, rs2 }
+    }
+}
+impl Instruction for C_AND {
+    fn execute(&self, state: &mut State) {
+        println!("and {:?}, {:?}, {:?}", self.rd, self.rd, self.rs2);
+        state.set_reg(self.rd, state.get_reg(self.rd) & state.get_reg(self.rs2));
+        state.pc += 2;
+    }
+}
+
+pub struct C_SUBW {
+    rd: XprName,
+    rs2: XprName,
+}
+impl C_SUBW {
+    pub fn new(inst: u16) -> Self {
+        let (rs2, rd) = rvc_cs_type(inst);
+        C_SUBW { rd, rs2 }
+    }
+}
+impl Instruction for C_SUBW {
+    fn execute(&self, state: &mut State) {
+        println!("subw {:?}, {:?}, {:?}", self.rd, self.rd, self.rs2);
+        state.set_reg(self.rd, state.get_reg(self.rd) - state.get_reg(self.rs2));
+        state.pc += 2;
+    }
+}
+
+pub struct C_ADDW {
+    rd: XprName,
+    rs2: XprName,
+}
+impl C_ADDW {
+    pub fn new(inst: u16) -> Self {
+        let (rs2, rd) = rvc_cs_type(inst);
+        C_ADDW { rd, rs2 }
+    }
+}
+impl Instruction for C_ADDW {
+    fn execute(&self, state: &mut State) {
+        println!("addw {:?}, {:?}, {:?}", self.rd, self.rd, self.rs2);
+        state.set_reg(self.rd, state.get_reg(self.rd) + state.get_reg(self.rs2));
+        state.pc += 2;
+    }
+}
+
 pub struct C_SLLI(u16);
 impl C_SLLI {
     pub fn new(inst: u16) -> Self {
